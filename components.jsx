@@ -1909,7 +1909,7 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
            onDragLeave={onBodyDragLeave}
            onDrop={onBodyDrop}>
         <div className="cody-v3-hero" aria-hidden="true">
-          <img src="design-system/cody.png" alt="" />
+          <img src="design-system/cody-panel.png" alt="" />
         </div>
 
         <div className="cody-v3-tabs" role="tablist">
@@ -2010,17 +2010,17 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
         <div className="cody-v3-section">
           <div className="cody-v3-section-h">Skills</div>
           <div className="cody-v3-skills-row">
-            <button className="cody-v3-skill-tile" data-skill="trades" title="Trade Scoping" onClick={() => runSkillTile("trades")}>
-              <span className="cody-v3-skill-tile-inner"><Icon name="search" size={22} /></span>
+            <button className="cody-v3-skill-tile" data-skill="trades" data-name="Trade Scoping" aria-label="Trade Scoping" onClick={() => runSkillTile("trades")}>
+              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/trades.png" alt="" />
             </button>
-            <button className="cody-v3-skill-tile" data-skill="bid" title="Bid Level Analysis" onClick={() => runSkillTile("bid")}>
-              <span className="cody-v3-skill-tile-inner"><Icon name="bar_chart" size={22} /></span>
+            <button className="cody-v3-skill-tile" data-skill="bid" data-name="Bid Leveling" aria-label="Bid Leveling" onClick={() => runSkillTile("bid")}>
+              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/bid.png" alt="" />
             </button>
-            <button className="cody-v3-skill-tile" data-skill="rfc" title="Clarifications & RFIs" onClick={() => runSkillTile("rfc")}>
-              <span className="cody-v3-skill-tile-inner"><Icon name="checklist" size={22} /></span>
+            <button className="cody-v3-skill-tile" data-skill="rfc" data-name="Clarifications &amp; RFIs" aria-label="Clarifications and RFIs" onClick={() => runSkillTile("rfc")}>
+              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/rfc.png" alt="" />
             </button>
-            <button className="cody-v3-skill-tile" data-skill="estimation" title="ROM Estimate" onClick={() => runSkillTile("estimation")}>
-              <span className="cody-v3-skill-tile-inner"><Icon name="calculate" size={22} /></span>
+            <button className="cody-v3-skill-tile" data-skill="estimation" data-name="ROM Estimate" aria-label="ROM Estimate" onClick={() => runSkillTile("estimation")}>
+              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/estimation.png" alt="" />
             </button>
           </div>
         </div>

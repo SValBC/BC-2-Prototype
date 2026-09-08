@@ -1351,8 +1351,8 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: 88% bottom;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 /* CHAT / HISTORY sub-tabs */
@@ -1500,32 +1500,50 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform .15s ease, background .15s ease;
-}
-.cody-v3-skill-tile:hover { background: rgba(253,253,253,0.06); transform: translateY(-1px); }
-.cody-v3-skill-tile-inner {
-  width: 36px; height: 36px;
-  border-radius: 4px;
-  display: inline-flex; align-items: center; justify-content: center;
-  color: var(--v3-off-white);
+  transition: transform .15s ease;
   position: relative;
-  overflow: hidden;
 }
-.cody-v3-skill-tile-inner::before {
-  content: "";
+.cody-v3-skill-tile:hover { transform: translateY(-1px); }
+/* The PNG carries its own fill + shine — the tile just displays it and
+   adds a hover backlight tinted to match the tile's color. */
+.cody-v3-skill-tile-img {
+  width: 36px;
+  height: 36px;
+  display: block;
+  border-radius: 4px;
+  transition: filter .18s ease;
+}
+.cody-v3-skill-tile[data-skill="trades"]     { --tile-glow: #6a6cf5; }
+.cody-v3-skill-tile[data-skill="bid"]        { --tile-glow: #5093ff; }
+.cody-v3-skill-tile[data-skill="rfc"]        { --tile-glow: #ffb70e; }
+.cody-v3-skill-tile[data-skill="estimation"] { --tile-glow: #48c1b5; }
+.cody-v3-skill-tile:hover .cody-v3-skill-tile-img {
+  filter: drop-shadow(0 0 12px var(--tile-glow)) drop-shadow(0 0 4px rgba(255,255,255,0.35));
+}
+
+/* Custom tooltip — appears above the tile on hover with the skill name. */
+.cody-v3-skill-tile::after {
+  content: attr(data-name);
   position: absolute;
-  inset: 0;
-  background: conic-gradient(from 90deg, rgba(255,255,255,0.55), rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
-  opacity: 0.35;
-  mix-blend-mode: overlay;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1c1b25;
+  color: var(--v3-off-white);
+  border: 1px solid rgba(253, 253, 253, 0.12);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  opacity: 0;
   pointer-events: none;
+  transition: opacity .12s ease;
+  z-index: 5;
 }
-.cody-v3-skill-tile-inner .mi { position: relative; font-size: 22px; z-index: 1; }
-.cody-v3-skill-tile[data-skill="trades"]    .cody-v3-skill-tile-inner { background: #2033ff; box-shadow: 0 0 20px 0 rgba(255,255,255,0.35), 0 0 20px 0 #5260ff; }
-.cody-v3-skill-tile[data-skill="bid"]       .cody-v3-skill-tile-inner { background: #5093ff; }
-.cody-v3-skill-tile[data-skill="rfc"]       .cody-v3-skill-tile-inner { background: #ffb70e; }
-.cody-v3-skill-tile[data-skill="estimation"].cody-v3-skill-tile-inner,
-.cody-v3-skill-tile[data-skill="estimation"] .cody-v3-skill-tile-inner { background: #48c1b5; }
+.cody-v3-skill-tile:hover::after { opacity: 1; }
 
 .cody-v3-divider {
   height: 1px;
