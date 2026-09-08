@@ -1260,6 +1260,427 @@
 .badge.b-working { display: none !important; }
 
 /* ============================================================
+   CODY V3 SIDE PANEL — Figma node 1425:17388
+   Dark gradient panel: header + hero + CHAT/HISTORY tabs +
+   composer pill + intro copy + skills tiles + dashed dropzone.
+   Applied when .ai-panel carries the .cody-v3 modifier class.
+   ============================================================ */
+.ai-panel.cody-v3 {
+  background: linear-gradient(174.95deg, #272635 43.23%, #726f9b 135.27%);
+  border: 1px solid var(--v3-border-rail);
+  border-radius: var(--v3-r-card);
+  box-shadow: -4px 0 20px 0 rgba(39, 38, 53, 0.25);
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  color: var(--v3-off-white);
+}
+
+/* Header row — NEW CHAT eyebrow + note-pencil icon + close X */
+.cody-v3-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 12px;
+  border-bottom: 1px solid #18171e;
+  flex-shrink: 0;
+}
+.cody-v3-head-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.cody-v3-head-title .mi { font-size: 22px; color: var(--v3-off-white); }
+.cody-v3-head-eyebrow {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--v3-lavender-grey);
+  white-space: nowrap;
+}
+.cody-v3-head-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.cody-v3-head-btn {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--v3-off-white);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.cody-v3-head-btn:hover { background: rgba(253,253,253,0.06); color: var(--v3-golden-gate); }
+.cody-v3-head-btn .mi { font-size: 20px; }
+
+/* Body — scrolls between header and skills/drop footer */
+.cody-v3-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(253,253,253,0.15) transparent;
+}
+.cody-v3-body::-webkit-scrollbar { width: 6px; }
+.cody-v3-body::-webkit-scrollbar-thumb { background: rgba(253,253,253,0.15); border-radius: 3px; }
+
+/* Cody hero — the animated mascot at the top of the panel body.
+   Full-width band, same crop treatment used on the Home greeting card
+   (cover + off-center object-position to isolate the front-facing Cody
+   from the multi-pose reference sheet). */
+.cody-v3-hero {
+  display: block;
+  height: 140px;
+  width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.cody-v3-hero img,
+.cody-v3-hero video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 88% bottom;
+}
+
+/* CHAT / HISTORY sub-tabs */
+.cody-v3-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 0 0;
+  flex-shrink: 0;
+}
+.cody-v3-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--v3-off-white);
+  opacity: 0.8;
+  transition: color .15s ease, opacity .15s ease;
+}
+.cody-v3-tab .mi { font-size: 18px; }
+.cody-v3-tab:hover { opacity: 1; color: var(--v3-golden-gate); }
+.cody-v3-tab.active { color: var(--v3-golden-gate); opacity: 1; }
+.cody-v3-tab-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(253, 253, 253, 0.20);
+}
+
+/* Composer — the "Ask me anything!" pill sits right under the tabs */
+.cody-v3-composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #32313f;
+  border: 1px solid rgba(253, 253, 253, 0.10);
+  border-radius: 40px;
+  padding: 10px 12px;
+  margin: 16px 0 0;
+  flex-shrink: 0;
+}
+.cody-v3-composer textarea {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  resize: none;
+  color: var(--v3-off-white);
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+  max-height: 96px;
+  padding: 0;
+}
+.cody-v3-composer textarea::placeholder { color: rgba(253, 253, 253, 0.50); }
+.cody-v3-composer-send {
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--v3-golden-gate);
+  color: var(--v3-off-white);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity .15s ease, background .15s ease;
+}
+.cody-v3-composer-send:disabled { background: rgba(253,253,253,0.10); color: rgba(253,253,253,0.35); cursor: not-allowed; }
+.cody-v3-composer-send .mi { font-size: 16px; }
+
+/* Intro copy — CODY eyebrow + description shown in the empty state */
+.cody-v3-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0 8px;
+  flex-shrink: 0;
+}
+.cody-v3-intro-eyebrow {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--v3-lavender-grey);
+}
+.cody-v3-intro-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--v3-off-white);
+  margin: 0;
+}
+.cody-v3-intro-body p { margin: 0; }
+.cody-v3-intro-body strong { font-weight: 700; }
+
+/* Footer group — skills tiles + divider + drop zone */
+.cody-v3-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.cody-v3-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px;
+}
+.cody-v3-section-h {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--v3-lavender-grey);
+  padding-bottom: 4px;
+}
+.cody-v3-skills-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.cody-v3-skill-tile {
+  width: 52px;
+  height: 52px;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .15s ease, background .15s ease;
+}
+.cody-v3-skill-tile:hover { background: rgba(253,253,253,0.06); transform: translateY(-1px); }
+.cody-v3-skill-tile-inner {
+  width: 36px; height: 36px;
+  border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--v3-off-white);
+  position: relative;
+  overflow: hidden;
+}
+.cody-v3-skill-tile-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 90deg, rgba(255,255,255,0.55), rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.cody-v3-skill-tile-inner .mi { position: relative; font-size: 22px; z-index: 1; }
+.cody-v3-skill-tile[data-skill="trades"]    .cody-v3-skill-tile-inner { background: #2033ff; box-shadow: 0 0 20px 0 rgba(255,255,255,0.35), 0 0 20px 0 #5260ff; }
+.cody-v3-skill-tile[data-skill="bid"]       .cody-v3-skill-tile-inner { background: #5093ff; }
+.cody-v3-skill-tile[data-skill="rfc"]       .cody-v3-skill-tile-inner { background: #ffb70e; }
+.cody-v3-skill-tile[data-skill="estimation"].cody-v3-skill-tile-inner,
+.cody-v3-skill-tile[data-skill="estimation"] .cody-v3-skill-tile-inner { background: #48c1b5; }
+
+.cody-v3-divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(253, 253, 253, 0.10);
+}
+
+/* Drop zone — dashed border, file-arrow-up icon */
+.cody-v3-drop {
+  border: 1px dashed rgba(253, 253, 253, 0.50);
+  border-radius: 4px;
+  height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: rgba(253, 253, 253, 0.55);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+  padding: 12px;
+  text-align: center;
+}
+.cody-v3-drop:hover,
+.cody-v3-drop.is-drag {
+  border-color: var(--v3-golden-gate);
+  background: rgba(232, 70, 0, 0.10);
+  color: var(--v3-off-white);
+}
+.cody-v3-drop .mi { font-size: 48px; opacity: 0.55; }
+.cody-v3-drop.is-drag .mi { opacity: 1; color: var(--v3-golden-gate); }
+.cody-v3-drop-hint {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Active chat state — messages replace the intro copy */
+.cody-v3-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0 8px;
+  flex: 1;
+  min-height: 0;
+}
+.cody-v3-msg { display: flex; }
+.cody-v3-msg.user { justify-content: flex-end; }
+.cody-v3-msg.ai   { justify-content: flex-start; }
+.cody-v3-msg-bubble {
+  max-width: 88%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+  word-wrap: break-word;
+}
+.cody-v3-msg.user .cody-v3-msg-bubble {
+  background: var(--v3-golden-gate);
+  color: var(--v3-off-white);
+  border-bottom-right-radius: 4px;
+}
+.cody-v3-msg.ai .cody-v3-msg-bubble {
+  background: rgba(253, 253, 253, 0.08);
+  border: 1px solid rgba(253, 253, 253, 0.10);
+  color: var(--v3-off-white);
+  border-bottom-left-radius: 4px;
+}
+.cody-v3-working {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(253,253,253,0.65);
+  font-size: 13px;
+  padding: 4px 0;
+}
+.cody-v3-working .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--v3-golden-gate);
+  animation: cody-v3-blink 1.2s infinite ease-in-out;
+}
+@keyframes cody-v3-blink {
+  0%, 60%, 100% { opacity: 0.35; }
+  30% { opacity: 1; }
+}
+
+/* HISTORY view — list of previous threads */
+.cody-v3-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 0 8px;
+  flex: 1;
+  min-height: 0;
+}
+.cody-v3-history-empty {
+  padding: 32px 8px;
+  text-align: center;
+  color: rgba(253,253,253,0.55);
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-size: 13px;
+  line-height: 18px;
+}
+.cody-v3-history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: rgba(253, 253, 253, 0.04);
+  border: 1px solid rgba(253, 253, 253, 0.08);
+  color: var(--v3-off-white);
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.cody-v3-history-item:hover { background: rgba(253, 253, 253, 0.08); border-color: rgba(253, 253, 253, 0.16); }
+.cody-v3-history-item-title {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--v3-off-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cody-v3-history-item-sub {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-size: 11px;
+  line-height: 14px;
+  color: rgba(253, 253, 253, 0.55);
+}
+
+/* Collapsed rail — restyled to match v3 dark palette */
+.ai-rail-collapsed.cody-v3-collapsed {
+  background: linear-gradient(174.95deg, #272635 43.23%, #726f9b 135.27%);
+  border: 1px solid var(--v3-border-rail);
+  border-radius: var(--v3-r-card);
+  color: var(--v3-off-white);
+}
+.ai-rail-collapsed.cody-v3-collapsed:hover { background: #1f1e2a; }
+.ai-rail-collapsed.cody-v3-collapsed .ai-rail-label { color: rgba(253,253,253,0.65); }
+.ai-rail-collapsed.cody-v3-collapsed:hover .ai-rail-label { color: var(--v3-off-white); }
+
+/* Kill the legacy inner chrome when the cody-v3 modifier is active */
+.ai-panel.cody-v3 .ai-panel-head,
+.ai-panel.cody-v3 .ai-panel-body:not(.cody-v3-body),
+.ai-panel.cody-v3 .ai-panel-input,
+.ai-panel.cody-v3 .ai-suggested-questions,
+.ai-panel.cody-v3 .ai-greeting-hero,
+.ai-panel.cody-v3 .ai-drop-hint { display: none !important; }
+
+/* ============================================================
    END V3 REDESIGN block
    ============================================================ */
 

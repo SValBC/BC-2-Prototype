@@ -1436,23 +1436,25 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
   const [dragOver, setDragOver] = useState(false);
   // Guided-flow state machine — { id, step, projectId?, projectPickerPage?, projectName? }
   const [flow, setFlow] = useState(null);
-  // Panel tab — Cody (the conversational assistant) or Clipboard (a
-  // context-aware tray of shortcuts + sections). Default flips by
-  // screen: Home leads with Cody (the user usually starts the day with
-  // a broad question), every other screen leads with Clipboard (which
-  // surfaces situational context for that view). Manual switches stick
-  // until the user navigates to a different screen.
-  const defaultTabForScreen = (s) => s === "home" ? "cody" : "clipboard";
-  const [panelTab, setPanelTab] = useState(() => defaultTabForScreen(context?.screen));
-  useEffect(() => {
-    setPanelTab(defaultTabForScreen(context?.screen));
-  }, [context?.screen]);
+  // Sub-tab within the Cody v3 panel — "chat" (current conversation)
+  // or "history" (list of prior conversations). Switching to history
+  // does not discard the active chat; New Chat clears it.
+  const [subTab, setSubTab] = useState("chat");
+  // Ephemeral thread history — snapshotted when the user starts a new chat.
+  const [history, setHistory] = useState([]);
   const dragCounter = useRef(0);
   const bodyRef = useRef(null);
   const resizeRef = useRef(null);
+  const filesInputRef = useRef(null);
 
   useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    // Only auto-scroll to the newest message when there's an active thread.
+    // In the empty state the hero + intro must remain visible at the top.
+    if (bodyRef.current && messages.length > 0) {
+      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    } else if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0;
+    }
   }, [messages, working, open]);
 
   // Resize handle — drag the left edge of the panel to set --col-ai-open
@@ -1621,6 +1623,26 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
   const onPickProject = (proj) => {
     if (!flow) return;
     pushUser(proj.name);
+    if (flow.id === "run-skill-generic") {
+      const skillId = flow.skillId;
+      const skillName = skillId === "bid" ? "Bid Level Analysis"
+                      : skillId === "rfc" ? "Clarifications & RFIs"
+                      : skillId === "trades" ? "Trade Scoping"
+                      : "the skill";
+      setFlow(null);
+      setTimeout(() => {
+        pushAI({
+          text: `Kicking off ${skillName} on ${proj.name}. I'll surface results when it's done.`,
+          successLink: { projectId: proj.id, projectName: proj.name, label: "Open " + proj.name, kind: "rom-running" }
+        });
+        if (skillId === "bid" && onConfigureBid) {
+          onConfigureBid(proj.id, () => onStartSkillRun && onStartSkillRun(proj.id, "bid"));
+        } else if (onStartSkillRun) {
+          onStartSkillRun(proj.id, skillId);
+        }
+      }, 600);
+      return;
+    }
     if (flow.id === "add-files") {
       setFlow({ ...flow, step: "drop", projectId: proj.id });
       setTimeout(() => {
@@ -1710,13 +1732,23 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
     dragCounter.current = 0;
     setDragOver(false);
     const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
-    if (files.length === 0) return;
+    handleFiles(files);
+  };
+
+  // Shared entry point for files coming from either drop or click-to-browse.
+  // If there's an active guided flow, defers to that flow. Otherwise, if
+  // the current context has a project, adds the files to that project's
+  // Files root. If no project is available, kicks off the add-files flow
+  // which asks the user to pick one.
+  const handleFiles = (files) => {
+    if (!files || files.length === 0) return;
+    const activeProject = context && context.project;
+    const activeFlow = flow;
+    // Ensure we're on the chat tab so the user sees the response.
+    setSubTab("chat");
     const fileList = files.map(f => f.name).join(", ");
     pushUser(`Uploaded: ${fileList}`);
     setWorking(true);
-
-    // Flow-aware drop handling — the active flow determines the AI response
-    const activeFlow = flow;
     setTimeout(() => {
       setWorking(false);
       if (activeFlow && (activeFlow.id === "create-project" || (activeFlow.id === "rom-estimate" && activeFlow.step === "drop"))) {
@@ -1753,20 +1785,88 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
         });
         if (activeFlow.projectId && onStartSkillRun) onStartSkillRun(activeFlow.projectId, "estimation");
         setFlow(null);
-      } else {
-        // Default behavior — no active flow
+      } else if (activeProject) {
+        // No active flow but the user is inside a project — treat this as
+        // "add these files to the current project's Files root".
         pushAI({
-          text: `Got it. I've indexed ${files.length} ${files.length === 1 ? "file" : "files"} (${fileList}). Want me to extract takeoffs, summarize the content, or run a skill against ${files.length === 1 ? "it" : "them"}?`,
-          suggest: ["Extract takeoffs", "Summarize the content", "Run a skill on these"],
+          text: `Done. I added ${files.length} ${files.length === 1 ? "file" : "files"} to ${activeProject.name} and indexed ${files.length === 1 ? "it" : "them"} so I can reference ${files.length === 1 ? "it" : "them"} in any future skill run.`,
+          successLink: { projectId: activeProject.id, projectName: activeProject.name, label: "Open " + activeProject.name, kind: "files-added" }
+        });
+      } else {
+        // No active flow, no project context — offer next-step suggestions.
+        pushAI({
+          text: `Got it. I've indexed ${files.length} ${files.length === 1 ? "file" : "files"} (${fileList}). Want me to add ${files.length === 1 ? "it" : "them"} to a project, extract takeoffs, or run a skill?`,
+          suggest: ["Add to a project", "Extract takeoffs", "Run a skill on these"],
         });
       }
     }, 1100);
+  };
+  // Hidden file input change handler — funnels click-to-browse into the
+  // same handleFiles path as drag-and-drop.
+  const onFilesPick = (e) => {
+    const picked = Array.from(e.target.files || []);
+    handleFiles(picked);
+    e.target.value = "";
+  };
+
+  // Skill tile click — Cody v3 panel's SKILLS row. If there's an active
+  // project, launch the run directly (via the Configure modal for skills
+  // that need it). Otherwise, kick off the guided project picker.
+  const runSkillTile = (skillId) => {
+    const activeProject = context && context.project;
+    if (!activeProject) {
+      // No project selected → guide through picker. ROM has an existing
+      // flow; the other three fall back to a generic picker.
+      if (skillId === "estimation") { startRomEstimateFlow(); return; }
+      resetChat();
+      setSubTab("chat");
+      const skillName = skillId === "bid" ? "Bid Level Analysis"
+                      : skillId === "rfc" ? "Clarifications & RFIs"
+                      : skillId === "trades" ? "Trade Scoping"
+                      : "this skill";
+      setFlow({ id: "run-skill-generic", step: "pick-project", skillId, pickerPage: 0 });
+      setTimeout(() => {
+        projectPickerStep(`Sure — which project should I run ${skillName} on?`, 0);
+      }, 200);
+      return;
+    }
+    // Have a project — route to the appropriate handler.
+    if (skillId === "estimation" && onConfigureRom) {
+      onConfigureRom(activeProject.id, () => onStartSkillRun && onStartSkillRun(activeProject.id, "estimation"));
+    } else if (skillId === "bid" && onConfigureBid) {
+      onConfigureBid(activeProject.id, () => onStartSkillRun && onStartSkillRun(activeProject.id, "bid"));
+    } else if (onStartSkillRun) {
+      onStartSkillRun(activeProject.id, skillId);
+    }
+  };
+
+  // Start a fresh conversation — snapshot the current thread into history
+  // (if it has content) and clear.
+  const newChat = () => {
+    if (messages.length > 0) {
+      const first = messages.find(m => m.role === "user");
+      const title = first && first.text ? first.text.slice(0, 60) : "Untitled conversation";
+      const snap = {
+        id: "thread-" + Date.now().toString(36),
+        title,
+        time: "Just now",
+        messages,
+      };
+      setHistory(h => [snap, ...h]);
+    }
+    resetChat();
+    setSubTab("chat");
+  };
+  // Resume a prior thread from the HISTORY view.
+  const resumeThread = (thread) => {
+    setMessages(thread.messages || []);
+    setSubTab("chat");
   };
 
   // Collapsed mode — narrow strip with the mascot
   if (!open) {
     return (
-      <div className="ai-rail-collapsed" onClick={onOpen} title="Open Cody, your AI assistant">
+      <div className="ai-rail-collapsed cody-v3-collapsed" onClick={onOpen} title="Open Cody, your AI assistant">
         <div className="ai-rail-mascot">
           <img src="design-system/cody.png" alt="Cody" />
           <span className="ai-rail-pulse" />
@@ -1777,53 +1877,125 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
   }
 
   const isEmpty = messages.length === 0 && !working;
+  const hasThread = messages.length > 0 || working;
 
   return (
-    <div className={"ai-panel " + (panelTab === "clipboard" ? "is-clipboard" : "")} data-tour-id="clipboard-panel">
+    <div className="ai-panel cody-v3" data-tour-id="clipboard-panel">
       <div className="ai-resize-handle" ref={resizeRef} title="Drag to resize" />
-      <div className="ai-panel-head ask-cody">
-        <div className="ai-panel-tabs" role="tablist">
-          <button
-            role="tab"
-            aria-selected={panelTab === "cody"}
-            className={"ai-panel-tab " + (panelTab === "cody" ? "active" : "")}
-            onClick={() => setPanelTab("cody")}>
-            <CodyMark size={14} />
-            <span>Cody</span>
-          </button>
-          <button
-            role="tab"
-            aria-selected={panelTab === "clipboard"}
-            className={"ai-panel-tab " + (panelTab === "clipboard" ? "active" : "")}
-            onClick={() => setPanelTab("clipboard")}>
-            <Icon name="content_paste" size={14} />
-            <span>Clipboard</span>
+
+      {/* HEADER — NEW CHAT eyebrow + new-chat action + close */}
+      <div className="cody-v3-head">
+        <div className="cody-v3-head-title">
+          <Icon name="edit_note" size={22} />
+          <span className="cody-v3-head-eyebrow">{subTab === "history" ? "history" : "new chat"}</span>
+        </div>
+        <div className="cody-v3-head-actions">
+          {hasThread && subTab === "chat" && (
+            <button className="cody-v3-head-btn" onClick={newChat} title="New chat">
+              <Icon name="add_comment" size={20} />
+            </button>
+          )}
+          <button className="cody-v3-head-btn" onClick={onClose} title="Close">
+            <Icon name="close" size={20} />
           </button>
         </div>
-        <button className="icon-btn" onClick={onClose} title="Close"><Icon name="close" size={18} /></button>
       </div>
 
-      {panelTab === "cody" && <>
-      <div className="ai-panel-body" ref={bodyRef}
+      {/* SCROLL BODY — hero + tabs + composer + conversation OR history */}
+      <div className="cody-v3-body"
+           ref={bodyRef}
            onDragEnter={onBodyDragEnter}
            onDragOver={onBodyDragOver}
            onDragLeave={onBodyDragLeave}
            onDrop={onBodyDrop}>
-        {isEmpty && (
-          <>
-            <div className="ai-greeting-hero">
-              <CodyAvatar size={140} mood="idle" />
-              <div className="ai-greeting-hero-text">
-                <div className="ai-greeting-hero-name">Hi, I'm Cody.</div>
-                <p>If you have a task for me or anything that you'd like for me to take a look at, just shoot me a question or drag and drop your file to start!</p>
-              </div>
+        <div className="cody-v3-hero" aria-hidden="true">
+          <img src="design-system/cody.png" alt="" />
+        </div>
+
+        <div className="cody-v3-tabs" role="tablist">
+          <button
+            role="tab"
+            aria-selected={subTab === "chat"}
+            className={"cody-v3-tab " + (subTab === "chat" ? "active" : "")}
+            onClick={() => setSubTab("chat")}>
+            <Icon name="chat_bubble_outline" size={18} />
+            <span>chat</span>
+          </button>
+          <div className="cody-v3-tab-divider" />
+          <button
+            role="tab"
+            aria-selected={subTab === "history"}
+            className={"cody-v3-tab " + (subTab === "history" ? "active" : "")}
+            onClick={() => setSubTab("history")}>
+            <Icon name="history" size={18} />
+            <span>history</span>
+          </button>
+        </div>
+
+        <div className="cody-v3-composer" onClick={(e) => { const ta = e.currentTarget.querySelector("textarea"); ta && ta.focus(); }}>
+          <textarea
+            rows={1}
+            placeholder="Ask me anything!"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+          />
+          <button className="cody-v3-composer-send" disabled={!input.trim()} onClick={() => send()} title="Send">
+            <Icon name="arrow_upward" size={16} />
+          </button>
+        </div>
+
+        {subTab === "chat" && isEmpty && (
+          <div className="cody-v3-intro">
+            <div className="cody-v3-intro-eyebrow">cody</div>
+            <div className="cody-v3-intro-body">
+              <p>Any questions about your project?<br />I'm happy to chat about them!</p>
+              <p>OR look below to <strong>RUN SKILLS</strong> or <strong>ADD FILES TO YOUR PROJECT</strong>!</p>
             </div>
-            <div className="ai-drop-hint">
-              <Icon name="cloud_upload" size={14} />
-              <span>Drop plans, specs, or images anywhere in this panel to upload.</span>
-            </div>
-          </>
+          </div>
         )}
+
+        {subTab === "chat" && hasThread && (
+          <div className="cody-v3-thread">
+            {messages.map((m, i) => (
+              m.role === "user"
+                ? <div key={i} className="cody-v3-msg user"><div className="cody-v3-msg-bubble">{m.text}</div></div>
+                : <div key={i} className="cody-v3-msg ai">
+                    <div className="cody-v3-msg-bubble">
+                      <AIResponse
+                        message={m}
+                        onSendSuggest={send}
+                        onPickProject={onPickProject}
+                        onPickerMore={onPickerMore}
+                        onPickerTypeProject={onPickerTypeProject}
+                        onChoice={onChoice}
+                        onNothingNewToAdd={onNothingNewToAdd}
+                        onSuccessLinkClick={onSuccessLinkClick}
+                      />
+                    </div>
+                  </div>
+            ))}
+            {working && (
+              <div className="cody-v3-msg ai">
+                <div className="cody-v3-working"><span className="dot" />Working.</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {subTab === "history" && (
+          history.length === 0
+            ? <div className="cody-v3-history-empty">No past conversations yet.<br />Once you chat with Cody, threads show up here.</div>
+            : <div className="cody-v3-history">
+                {history.map(h => (
+                  <button key={h.id} className="cody-v3-history-item" onClick={() => resumeThread(h)}>
+                    <div className="cody-v3-history-item-title">{h.title}</div>
+                    <div className="cody-v3-history-item-sub">{h.time}</div>
+                  </button>
+                ))}
+              </div>
+        )}
+
         {dragOver && (
           <div className="ai-drop-overlay">
             <Icon name="cloud_upload" size={44} />
@@ -1831,64 +2003,42 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
             <div className="ai-drop-overlay-sub">Cody will index and analyze your files</div>
           </div>
         )}
-        {messages.map((m, i) => (
-          m.role === "user"
-            ? <div key={i} className="chat-msg user"><div className="user-bubble">{m.text}</div></div>
-            : <AIResponse
-                key={i}
-                message={m}
-                onSendSuggest={send}
-                onPickProject={onPickProject}
-                onPickerMore={onPickerMore}
-                onPickerTypeProject={onPickerTypeProject}
-                onChoice={onChoice}
-                onNothingNewToAdd={onNothingNewToAdd}
-                onSuccessLinkClick={onSuccessLinkClick}
-              />
-        ))}
-        {working && (
-          <div className="chat-msg ai">
-            <CodyMark size={16} className="ai-resp-sparkle" />
-            <div className="working"><span className="dot" />Working.</div>
-          </div>
-        )}
       </div>
 
-      {isEmpty && (
-        <div className="ai-suggested-questions">
-          <div className="ai-suggested-label">Easy Convo Starters</div>
-          <div className="ai-suggested-chips">
-            {suggestedQuestions.map((q, i) => (
-              <button key={i} className="ai-suggested-chip" onClick={() => send(q)}>{q}</button>
-            ))}
+      {/* FOOTER — skills tiles + divider + drop zone */}
+      <div className="cody-v3-foot">
+        <div className="cody-v3-section">
+          <div className="cody-v3-section-h">Skills</div>
+          <div className="cody-v3-skills-row">
+            <button className="cody-v3-skill-tile" data-skill="trades" title="Trade Scoping" onClick={() => runSkillTile("trades")}>
+              <span className="cody-v3-skill-tile-inner"><Icon name="search" size={22} /></span>
+            </button>
+            <button className="cody-v3-skill-tile" data-skill="bid" title="Bid Level Analysis" onClick={() => runSkillTile("bid")}>
+              <span className="cody-v3-skill-tile-inner"><Icon name="bar_chart" size={22} /></span>
+            </button>
+            <button className="cody-v3-skill-tile" data-skill="rfc" title="Clarifications & RFIs" onClick={() => runSkillTile("rfc")}>
+              <span className="cody-v3-skill-tile-inner"><Icon name="checklist" size={22} /></span>
+            </button>
+            <button className="cody-v3-skill-tile" data-skill="estimation" title="ROM Estimate" onClick={() => runSkillTile("estimation")}>
+              <span className="cody-v3-skill-tile-inner"><Icon name="calculate" size={22} /></span>
+            </button>
           </div>
         </div>
-      )}
-
-      <div className="ai-panel-input">
-        <div className="ai-input-wrap">
-          <textarea
-            placeholder="Ask something"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          />
-          <button className="send" disabled={!input.trim()} onClick={() => send()}>
-            <Icon name="arrow_forward" size={16} />
-          </button>
+        <div className="cody-v3-divider" />
+        <div className="cody-v3-section">
+          <div className="cody-v3-section-h">Add files to project</div>
+          <div className={"cody-v3-drop " + (dragOver ? "is-drag" : "")}
+               onClick={() => filesInputRef.current && filesInputRef.current.click()}
+               onDragOver={onBodyDragOver}
+               onDragEnter={onBodyDragEnter}
+               onDragLeave={onBodyDragLeave}
+               onDrop={onBodyDrop}>
+            <Icon name="upload_file" size={64} />
+            <div className="cody-v3-drop-hint">Drag &amp; drop files here, or click to browse</div>
+          </div>
+          <input type="file" multiple hidden ref={filesInputRef} onChange={onFilesPick} />
         </div>
       </div>
-      </>}
-
-      {panelTab === "clipboard" && (
-        <Clipboard
-          context={context}
-          onOpenProject={onOpenProject}
-          onOpenProjectTabInNewTab={onOpenProjectTabInNewTab}
-          onConfigureBid={onConfigureBid}
-          onConfigureRom={onConfigureRom}
-        />
-      )}
     </div>
   );
 }
