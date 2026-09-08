@@ -1397,7 +1397,9 @@
   background: rgba(253, 253, 253, 0.20);
 }
 
-/* Composer — the "Ask me anything!" pill sits right under the tabs */
+/* Composer — the "Ask me anything!" pill sits under the CHAT/HISTORY
+   tabs. 32px above (from the tabs) and 24px below (to the intro copy
+   / conversation thread) so the reading rhythm has breathing room. */
 .cody-v3-composer {
   display: flex;
   align-items: center;
@@ -1406,7 +1408,7 @@
   border: 1px solid rgba(253, 253, 253, 0.10);
   border-radius: 40px;
   padding: 10px 12px;
-  margin: 16px 0 0;
+  margin: 32px 0 0;
   flex-shrink: 0;
 }
 .cody-v3-composer textarea {
@@ -1438,12 +1440,13 @@
 .cody-v3-composer-send:disabled { background: rgba(253,253,253,0.10); color: rgba(253,253,253,0.35); cursor: not-allowed; }
 .cody-v3-composer-send .mi { font-size: 16px; }
 
-/* Intro copy — CODY eyebrow + description shown in the empty state */
+/* Intro copy — CODY eyebrow + description shown in the empty state.
+   24px above the copy (from the composer). */
 .cody-v3-intro {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px 0 8px;
+  padding: 24px 0 8px;
   flex-shrink: 0;
 }
 .cody-v3-intro-eyebrow {
