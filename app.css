@@ -1303,9 +1303,10 @@
 .cody-v3-head-title {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 .cody-v3-head-title .mi { font-size: 22px; color: var(--v3-off-white); }
 .cody-v3-head-eyebrow {
@@ -1316,6 +1317,19 @@
   text-transform: uppercase;
   color: var(--v3-lavender-grey);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+/* When the header carries an active chat's name (not "NEW CHAT"), drop
+   the uppercase/wide-tracking treatment so the title reads naturally,
+   and bump contrast so it reads as the primary content of the header. */
+.cody-v3-head-eyebrow.is-chat-name {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--v3-off-white);
 }
 .cody-v3-head-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .cody-v3-head-btn {
@@ -1349,7 +1363,8 @@
 /* Cody hero — the animated mascot at the top of the panel body.
    Full-width band, same crop treatment used on the Home greeting card
    (cover + off-center object-position to isolate the front-facing Cody
-   from the multi-pose reference sheet). */
+   from the multi-pose reference sheet). Fades + collapses when a chat
+   is active so the tabs/composer/thread shift up into the freed space. */
 .cody-v3-hero {
   display: block;
   height: 140px;
@@ -1358,6 +1373,16 @@
   pointer-events: none;
   overflow: hidden;
   border-radius: 4px;
+  opacity: 1;
+  transition: height .32s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity .22s ease,
+              margin .32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cody-v3-hero.is-hidden {
+  height: 0;
+  opacity: 0;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .cody-v3-hero img,
 .cody-v3-hero video {

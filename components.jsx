@@ -1472,6 +1472,10 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
   const [subTab, setSubTab] = useState("chat");
   // Ephemeral thread history — snapshotted when the user starts a new chat.
   const [history, setHistory] = useState([]);
+  // Name of the active conversation. Set from the first user message,
+  // or from the resumed thread's title. Falls back to "NEW CHAT" in the
+  // header when null.
+  const [chatName, setChatName] = useState(null);
   const dragCounter = useRef(0);
   const bodyRef = useRef(null);
   const resizeRef = useRef(null);
@@ -1563,6 +1567,11 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
   const send = (text) => {
     const t = text || input.trim();
     if (!t) return;
+    // Name the conversation from the first user message so the header
+    // stops saying "NEW CHAT" and starts identifying this thread.
+    if (messages.length === 0 && !chatName) {
+      setChatName(t.length > 40 ? t.slice(0, 40).trimEnd() + "…" : t);
+    }
     setMessages(m => [...m, { role: "user", text: t }]);
     setInput("");
     setWorking(true);
@@ -1572,7 +1581,7 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
     }, 1400);
   };
 
-  const resetChat = () => { setMessages([]); setInput(""); setWorking(false); setFlow(null); };
+  const resetChat = () => { setMessages([]); setInput(""); setWorking(false); setFlow(null); setChatName(null); };
 
   // ---- GUIDED FLOWS (Create project / Add files / Get ROM estimate) ----
   // Helpers push specialized AI messages with embedded interactive UI
@@ -1839,28 +1848,12 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
     e.target.value = "";
   };
 
-  // Skill tile click — Cody v3 panel's SKILLS row. If there's an active
-  // project, launch the run directly (via the Configure modal for skills
-  // that need it). Otherwise, kick off the guided project picker.
+  // Skill tile click — the SKILLS row is only rendered when Cody has a
+  // project in context, so we can route straight to the active project's
+  // Configure modal (ROM/bid) or start the run directly.
   const runSkillTile = (skillId) => {
     const activeProject = context && context.project;
-    if (!activeProject) {
-      // No project selected → guide through picker. ROM has an existing
-      // flow; the other three fall back to a generic picker.
-      if (skillId === "estimation") { startRomEstimateFlow(); return; }
-      resetChat();
-      setSubTab("chat");
-      const skillName = skillId === "bid" ? "Bid Level Analysis"
-                      : skillId === "rfc" ? "Clarifications & RFIs"
-                      : skillId === "trades" ? "Trade Scoping"
-                      : "this skill";
-      setFlow({ id: "run-skill-generic", step: "pick-project", skillId, pickerPage: 0 });
-      setTimeout(() => {
-        projectPickerStep(`Sure — which project should I run ${skillName} on?`, 0);
-      }, 200);
-      return;
-    }
-    // Have a project — route to the appropriate handler.
+    if (!activeProject) return;
     if (skillId === "estimation" && onConfigureRom) {
       onConfigureRom(activeProject.id, () => onStartSkillRun && onStartSkillRun(activeProject.id, "estimation"));
     } else if (skillId === "bid" && onConfigureBid) {
@@ -1890,6 +1883,7 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
   // Resume a prior thread from the HISTORY view.
   const resumeThread = (thread) => {
     setMessages(thread.messages || []);
+    setChatName(thread.title || null);
     setSubTab("chat");
   };
 
@@ -1913,11 +1907,14 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
     <div className="ai-panel cody-v3" data-tour-id="clipboard-panel">
       <div className="ai-resize-handle" ref={resizeRef} title="Drag to resize" />
 
-      {/* HEADER — NEW CHAT eyebrow + new-chat action + close */}
+      {/* HEADER — chat name (or NEW CHAT / HISTORY eyebrow) + new-chat + close */}
       <div className="cody-v3-head">
         <div className="cody-v3-head-title">
-          <Icon name="edit_note" size={22} />
-          <span className="cody-v3-head-eyebrow">{subTab === "history" ? "history" : "new chat"}</span>
+          <span
+            className={"cody-v3-head-eyebrow " + (subTab === "chat" && chatName ? "is-chat-name" : "")}
+            title={subTab === "chat" && chatName ? chatName : undefined}>
+            {subTab === "history" ? "history" : (chatName || "new chat")}
+          </span>
         </div>
         <div className="cody-v3-head-actions">
           {hasThread && subTab === "chat" && (
@@ -1938,7 +1935,7 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
            onDragOver={onBodyDragOver}
            onDragLeave={onBodyDragLeave}
            onDrop={onBodyDrop}>
-        <div className="cody-v3-hero" aria-hidden="true">
+        <div className={"cody-v3-hero " + (hasThread || subTab === "history" ? "is-hidden" : "")} aria-hidden="true">
           <img src="design-system/cody-panel.png" alt="" />
         </div>
 
@@ -2037,40 +2034,44 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
         )}
       </div>
 
-      {/* FOOTER — skills tiles + divider + drop zone */}
-      <div className="cody-v3-foot">
-        <div className="cody-v3-section">
-          <div className="cody-v3-section-h">Skills</div>
-          <div className="cody-v3-skills-row">
-            <button className="cody-v3-skill-tile" data-skill="trades" data-name="Trade Scoping" aria-label="Trade Scoping" onClick={() => runSkillTile("trades")}>
-              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/trades.png" alt="" />
-            </button>
-            <button className="cody-v3-skill-tile" data-skill="bid" data-name="Bid Leveling" aria-label="Bid Leveling" onClick={() => runSkillTile("bid")}>
-              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/bid.png" alt="" />
-            </button>
-            <button className="cody-v3-skill-tile" data-skill="rfc" data-name="Clarifications &amp; RFIs" aria-label="Clarifications and RFIs" onClick={() => runSkillTile("rfc")}>
-              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/rfc.png" alt="" />
-            </button>
-            <button className="cody-v3-skill-tile" data-skill="estimation" data-name="ROM Estimate" aria-label="ROM Estimate" onClick={() => runSkillTile("estimation")}>
-              <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/estimation.png" alt="" />
-            </button>
+      {/* FOOTER — skills tiles + divider + drop zone.
+          Only rendered when Cody has a project in context, so both actions
+          are unambiguously scoped to that project (no picker needed). */}
+      {context && context.project && (
+        <div className="cody-v3-foot">
+          <div className="cody-v3-section">
+            <div className="cody-v3-section-h">Skills</div>
+            <div className="cody-v3-skills-row">
+              <button className="cody-v3-skill-tile" data-skill="trades" data-name="Trade Scoping" aria-label="Trade Scoping" onClick={() => runSkillTile("trades")}>
+                <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/trades.png" alt="" />
+              </button>
+              <button className="cody-v3-skill-tile" data-skill="bid" data-name="Bid Leveling" aria-label="Bid Leveling" onClick={() => runSkillTile("bid")}>
+                <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/bid.png" alt="" />
+              </button>
+              <button className="cody-v3-skill-tile" data-skill="rfc" data-name="Clarifications &amp; RFIs" aria-label="Clarifications and RFIs" onClick={() => runSkillTile("rfc")}>
+                <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/rfc.png" alt="" />
+              </button>
+              <button className="cody-v3-skill-tile" data-skill="estimation" data-name="ROM Estimate" aria-label="ROM Estimate" onClick={() => runSkillTile("estimation")}>
+                <img className="cody-v3-skill-tile-img" src="design-system/skill-icons/estimation.png" alt="" />
+              </button>
+            </div>
+          </div>
+          <div className="cody-v3-divider" />
+          <div className="cody-v3-section">
+            <div className="cody-v3-section-h">Add files to project</div>
+            <div className={"cody-v3-drop " + (dragOver ? "is-drag" : "")}
+                 onClick={() => filesInputRef.current && filesInputRef.current.click()}
+                 onDragOver={onBodyDragOver}
+                 onDragEnter={onBodyDragEnter}
+                 onDragLeave={onBodyDragLeave}
+                 onDrop={onBodyDrop}>
+              <Icon name="upload_file" size={64} />
+              <div className="cody-v3-drop-hint">Drag &amp; drop files here, or click to browse</div>
+            </div>
+            <input type="file" multiple hidden ref={filesInputRef} onChange={onFilesPick} />
           </div>
         </div>
-        <div className="cody-v3-divider" />
-        <div className="cody-v3-section">
-          <div className="cody-v3-section-h">Add files to project</div>
-          <div className={"cody-v3-drop " + (dragOver ? "is-drag" : "")}
-               onClick={() => filesInputRef.current && filesInputRef.current.click()}
-               onDragOver={onBodyDragOver}
-               onDragEnter={onBodyDragEnter}
-               onDragLeave={onBodyDragLeave}
-               onDrop={onBodyDrop}>
-            <Icon name="upload_file" size={64} />
-            <div className="cody-v3-drop-hint">Drag &amp; drop files here, or click to browse</div>
-          </div>
-          <input type="file" multiple hidden ref={filesInputRef} onChange={onFilesPick} />
-        </div>
-      </div>
+      )}
     </div>
   );
 }
