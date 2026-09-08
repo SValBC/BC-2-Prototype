@@ -1991,6 +1991,7 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
               m.role === "user"
                 ? <div key={i} className="cody-v3-msg user"><div className="cody-v3-msg-bubble">{m.text}</div></div>
                 : <div key={i} className="cody-v3-msg ai">
+                    <div className="cody-v3-msg-eyebrow">cody</div>
                     <div className="cody-v3-msg-bubble">
                       <AIResponse
                         message={m}
@@ -2007,6 +2008,7 @@ function AIAssistant({ open, onClose, onOpen, context, projects, pendingAction, 
             ))}
             {working && (
               <div className="cody-v3-msg ai">
+                <div className="cody-v3-msg-eyebrow">cody</div>
                 <div className="cody-v3-working"><span className="dot" />Working.</div>
               </div>
             )}

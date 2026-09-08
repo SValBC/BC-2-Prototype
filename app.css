@@ -1283,6 +1283,12 @@
   gap: 12px;
   overflow: hidden;
   color: var(--v3-off-white);
+  /* The base .ai-panel rule sets `height: 100vh`, which puts the panel
+     bottom 8px past the app's inner area (app has 8px top+bottom padding).
+     Clamp to the visible area so the panel's own 8px padding-bottom is
+     actually on-screen. */
+  height: calc(100vh - 2 * var(--v3-rail-gap, 8px));
+  max-height: calc(100vh - 2 * var(--v3-rail-gap, 8px));
 }
 
 /* Header row — NEW CHAT eyebrow + note-pencil icon + close X */
@@ -1600,9 +1606,9 @@
   flex: 1;
   min-height: 0;
 }
-.cody-v3-msg { display: flex; }
-.cody-v3-msg.user { justify-content: flex-end; }
-.cody-v3-msg.ai   { justify-content: flex-start; }
+.cody-v3-msg { display: flex; flex-direction: column; }
+.cody-v3-msg.user { align-items: flex-end; }
+.cody-v3-msg.ai   { align-items: stretch; gap: 6px; }
 .cody-v3-msg-bubble {
   max-width: 88%;
   padding: 10px 12px;
@@ -1613,15 +1619,28 @@
   word-wrap: break-word;
 }
 .cody-v3-msg.user .cody-v3-msg-bubble {
-  background: var(--v3-golden-gate);
-  color: var(--v3-off-white);
-  border-bottom-right-radius: 4px;
-}
-.cody-v3-msg.ai .cody-v3-msg-bubble {
   background: rgba(253, 253, 253, 0.08);
   border: 1px solid rgba(253, 253, 253, 0.10);
   color: var(--v3-off-white);
-  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+/* Cody's responses are inline — no bubble, no border, just the copy
+   under a small CODY eyebrow so it matches the panel's intro treatment. */
+.cody-v3-msg.ai .cody-v3-msg-bubble {
+  max-width: 100%;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  color: var(--v3-off-white);
+}
+.cody-v3-msg-eyebrow {
+  font-family: var(--font-display, 'Figtree', sans-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--v3-lavender-grey);
 }
 .cody-v3-working {
   display: inline-flex;
