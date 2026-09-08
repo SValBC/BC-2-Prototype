@@ -511,10 +511,10 @@ function HomeScreen({ ctx, projects, runs, onPin, pinnedSet, onOpenProject, onOp
     setGreetPrompt("");
   };
   const skillIcon = (name) =>
-    name === "Rough Order of Magnitude (ROM) Estimate" ? "calculate" :
-    name === "Bid Level Analysis" ? "compare_arrows" :
-    name === "Clarifications & Potential RFIs" ? "rule" :
-    name === "Trade Scoping" ? "groups" :
+    name === "Rough Order of Magnitude (ROM) Estimate" ? "estimation" :
+    name === "Bid Level Analysis" ? "bid" :
+    name === "Clarifications & Potential RFIs" ? "rfc" :
+    name === "Trade Scoping" ? "trades" :
     "auto_awesome";
   const skillToTab = (name) =>
     name === "Rough Order of Magnitude (ROM) Estimate" ? "estimation" :
@@ -531,10 +531,10 @@ function HomeScreen({ ctx, projects, runs, onPin, pinnedSet, onOpenProject, onOp
       const [projectId, skillId] = pinId.slice(6).split("/");
       const proj = projects.find((x) => x.id === projectId);
       const meta = {
-        estimation: { icon: "calculate", eyebrow: "Skill result · Estimation", value: (proj && proj.estimate) || "N/A", delta: "+2.3% vs v2", theme: "orange" },
-        rfc: { icon: "rule", eyebrow: "Skill result · Clarifications", value: "23 issues", delta: "3 critical", theme: "orange" },
-        bid: { icon: "compare_arrows", eyebrow: "Skill result · Bid Level Analysis", value: "$384.7k", delta: "−$74k vs ROM", theme: "tiffany" },
-        trades: { icon: "groups", eyebrow: "Skill result · Trade Scoping", value: "13 trades", delta: "10 high-confidence", theme: "raisin" },
+        estimation: { icon: "estimation", eyebrow: "Skill result · Estimation", value: (proj && proj.estimate) || "N/A", delta: "+2.3% vs v2", theme: "orange" },
+        rfc: { icon: "rfc", eyebrow: "Skill result · Clarifications", value: "23 issues", delta: "3 critical", theme: "orange" },
+        bid: { icon: "bid", eyebrow: "Skill result · Bid Level Analysis", value: "$384.7k", delta: "−$74k vs ROM", theme: "tiffany" },
+        trades: { icon: "trades", eyebrow: "Skill result · Trade Scoping", value: "13 trades", delta: "10 high-confidence", theme: "raisin" },
       }[skillId];
       if (proj && meta) pinnedCards.push({ pinId, kind: "skill", proj, skillId, meta });
     } else if (typeof pinId === "string" && pinId.startsWith("drawing:")) {

@@ -290,7 +290,7 @@ window.BC_DATA = {
       id: "rfc",
       name: "Clarifications & Potential RFIs",
       desc: "Detect inconsistencies and missing detail across documents.",
-      icon: "rule",
+      icon: "rfc",
       duration: "~6 min",
       runs: 7
     },
@@ -298,7 +298,7 @@ window.BC_DATA = {
       id: "trade-scoping",
       name: "Trade Scoping",
       desc: "Compiles every trade referenced in your uploaded documentation and drafts a scope of work for each — ready to attach to bid invitations.",
-      icon: "groups",
+      icon: "trades",
       duration: "~4 min",
       runs: 3
     },
@@ -306,7 +306,7 @@ window.BC_DATA = {
       id: "bid-leveling",
       name: "Bid Level Analysis",
       desc: "Compare subcontractor bids and surface the best fit by division.",
-      icon: "compare_arrows",
+      icon: "bid",
       duration: "~8 min",
       runs: 2
     },
@@ -314,7 +314,7 @@ window.BC_DATA = {
       id: "estimation",
       name: "Rough Order of Magnitude (ROM) Estimate",
       desc: "ROM cost estimate by CSI division and labor vs materials.",
-      icon: "calculate",
+      icon: "estimation",
       duration: "~12 min",
       runs: 4
     }

@@ -479,10 +479,10 @@ function ProjectHomeScreen({ project, onOpenTab, onOpenTabInNewTab, onAskAI, onO
         </div>
         <div data-tour-id="project-run-skill" className="projhome-v3-skills">
           {[
-          { id: "rfc", title: "Clarifications & Potential RFIs", icon: "rule", desc: "Performs thorough document analysis across all project files, identifying inconsistencies, errors, and optimization opportunities. Creates detailed reports highlighting potential issues and improvements to enhance project quality and efficiency.", lastRun: null, success: false },
-          { id: "trades", title: "Trade Scoping", icon: "groups", desc: "Compiles every trade referenced across your uploaded documentation and drafts a scope of work for each, ready to attach to bid invitations. Feeds directly into the trade-invite workflow so bids go out the door faster.", lastRun: null, success: false },
-          { id: "bid", title: "Bid Level Analysis", icon: "compare_arrows", desc: "Compares contractor bids fairly by standardizing submissions, identifying missing or inconsistent scope items, and adjusting costs so every bid reflects an equivalent scope, ensuring award decisions are based on true value, not just the lowest number.", lastRun: null, success: false },
-          { id: "estimation", title: "Rough Order of Magnitude (ROM) Estimate", icon: "calculate", desc: "Delivers end-to-end estimation capabilities, from initial quantity takeoffs through materials selection, labor calculations, and scheduling to produce comprehensive project estimates. Integrates all estimating phases into a single, cohesive workflow for maximum efficiency.", lastRun: null, success: false }].
+          { id: "rfc", title: "Clarifications & Potential RFIs", icon: "rfc", desc: "Performs thorough document analysis across all project files, identifying inconsistencies, errors, and optimization opportunities. Creates detailed reports highlighting potential issues and improvements to enhance project quality and efficiency.", lastRun: null, success: false },
+          { id: "trades", title: "Trade Scoping", icon: "trades", desc: "Compiles every trade referenced across your uploaded documentation and drafts a scope of work for each, ready to attach to bid invitations. Feeds directly into the trade-invite workflow so bids go out the door faster.", lastRun: null, success: false },
+          { id: "bid", title: "Bid Level Analysis", icon: "bid", desc: "Compares contractor bids fairly by standardizing submissions, identifying missing or inconsistent scope items, and adjusting costs so every bid reflects an equivalent scope, ensuring award decisions are based on true value, not just the lowest number.", lastRun: null, success: false },
+          { id: "estimation", title: "Rough Order of Magnitude (ROM) Estimate", icon: "estimation", desc: "Delivers end-to-end estimation capabilities, from initial quantity takeoffs through materials selection, labor calculations, and scheduling to produce comprehensive project estimates. Integrates all estimating phases into a single, cohesive workflow for maximum efficiency.", lastRun: null, success: false }].
           map((s) => {
             const runKey = project.id + "/" + s.id;
             const run = skillRuns && skillRuns[runKey];
@@ -564,10 +564,10 @@ function ProjectHomeScreen({ project, onOpenTab, onOpenTabInNewTab, onAskAI, onO
           const visibleRuns = projectRuns.slice(0, 5);
           const hiddenCount = projectRuns.length - visibleRuns.length;
           const skillIcon = (name) =>
-            name === "Rough Order of Magnitude (ROM) Estimate" ? "calculate" :
-            name === "Bid Level Analysis" ? "compare_arrows" :
-            name === "Clarifications & Potential RFIs" ? "rule" :
-            name === "Trade Scoping" ? "groups" :
+            name === "Rough Order of Magnitude (ROM) Estimate" ? "estimation" :
+            name === "Bid Level Analysis" ? "bid" :
+            name === "Clarifications & Potential RFIs" ? "rfc" :
+            name === "Trade Scoping" ? "trades" :
             "auto_awesome";
           const skillToTab = (name) =>
             name === "Rough Order of Magnitude (ROM) Estimate" ? "estimation" :
@@ -2280,10 +2280,10 @@ function ProjectHistoryTab({ project, onOpenTab }) {
   const visibleRuns = filter === "all" ? sortedRuns : sortedRuns.filter(r => r.skill === filter);
 
   const skillIcon = (name) =>
-    name === "Rough Order of Magnitude (ROM) Estimate" ? "calculate" :
-    name === "Bid Level Analysis" ? "compare_arrows" :
-    name === "Clarifications & Potential RFIs" ? "rule" :
-    name === "Trade Scoping" ? "groups" :
+    name === "Rough Order of Magnitude (ROM) Estimate" ? "estimation" :
+    name === "Bid Level Analysis" ? "bid" :
+    name === "Clarifications & Potential RFIs" ? "rfc" :
+    name === "Trade Scoping" ? "trades" :
     "auto_awesome";
   const shortName = (name) =>
     name === "Rough Order of Magnitude (ROM) Estimate" ? "ROM Estimate" :

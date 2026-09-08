@@ -931,6 +931,13 @@
 .v3-skill-card-icon.is-orange { background: var(--v3-golden-gate); }
 .v3-skill-card-icon.is-raisin { background: var(--v3-dark-raisin); }
 .v3-skill-card-icon.is-blue { background: #0074e8; }
+/* When the icon is a branded skill PNG, strip the colored wrapper —
+   the icon already carries its own fill + shine. */
+.v3-skill-card-icon:has(.skill-mi) { background: transparent; padding: 0; }
+.v3-skill-card-icon .skill-mi { width: 36px; height: 36px; border-radius: 4px; }
+/* Same idea for the small Recent Skill Runs table row icon. */
+.v3-runs-cell-skill-icon:has(.skill-mi) { background: transparent; }
+.v3-runs-cell-skill-icon .skill-mi { width: 18px; height: 18px; border-radius: 3px; }
 .v3-skill-card-title-block {
   flex: 1;
   min-width: 0;

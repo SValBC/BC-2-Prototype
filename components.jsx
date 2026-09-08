@@ -3,10 +3,40 @@
 
 const { useState, useEffect, useRef, useMemo } = React;
 
-// Material icon helper
-const Icon = ({ name, size, style, className }) => (
-  <span className={"mi material-icons-outlined " + (className || "")} style={{ fontSize: size, ...(style || {}) }}>{name}</span>
-);
+// Material icon helper.
+//
+// Named skill slugs ("estimation" / "rfc" / "bid" / "bid-leveling" /
+// "trades" / "trade-scoping") short-circuit to render the branded skill
+// PNGs from design-system/skill-icons/. Everything else renders as a
+// Material Icons Outlined glyph. This lets every existing call site
+// like `<Icon name={skillIcon(name)} />` render the correct branded
+// icon without further changes.
+const SKILL_ICON_SRC = {
+  estimation: "design-system/skill-icons/estimation.png",
+  rfc: "design-system/skill-icons/rfc.png",
+  bid: "design-system/skill-icons/bid.png",
+  "bid-leveling": "design-system/skill-icons/bid.png",
+  trades: "design-system/skill-icons/trades.png",
+  "trade-scoping": "design-system/skill-icons/trades.png",
+};
+const Icon = ({ name, size, style, className }) => {
+  const src = SKILL_ICON_SRC[name];
+  if (src) {
+    const dim = size || 20;
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className={"skill-mi " + (className || "")}
+        style={{ width: dim, height: dim, display: "inline-block", verticalAlign: "middle", ...(style || {}) }}
+      />
+    );
+  }
+  return (
+    <span className={"mi material-icons-outlined " + (className || "")} style={{ fontSize: size, ...(style || {}) }}>{name}</span>
+  );
+};
 
 // Gradient-painted auto_awesome icon — visual mark for any "Cody is narrating / recommending" moment
 const CodyMark = ({ size = 14, style, className }) => (
@@ -1082,10 +1112,10 @@ function Clipboard({ context, onOpenProject, onOpenProjectTabInNewTab, onConfigu
   const projectRuns = [...localProjectRuns, ...historicalRuns].slice(0, 5);
   const hiddenCount = (localProjectRuns.length + historicalRuns.length) - projectRuns.length;
   const skillIcon = (name) =>
-    name === "Rough Order of Magnitude (ROM) Estimate" ? "calculate" :
-    name === "Bid Level Analysis" ? "compare_arrows" :
-    name === "Clarifications & Potential RFIs" ? "rule" :
-    name === "Trade Scoping" ? "groups" :
+    name === "Rough Order of Magnitude (ROM) Estimate" ? "estimation" :
+    name === "Bid Level Analysis" ? "bid" :
+    name === "Clarifications & Potential RFIs" ? "rfc" :
+    name === "Trade Scoping" ? "trades" :
     "auto_awesome";
   const shortSkill = (name) =>
     name === "Rough Order of Magnitude (ROM) Estimate" ? "ROM Estimate" :
