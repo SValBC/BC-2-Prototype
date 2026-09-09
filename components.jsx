@@ -2080,7 +2080,6 @@ function AIResponse({ message, onSendSuggest, onPickProject, onPickerMore, onPic
   const [typeAheadValue, setTypeAheadValue] = useState("");
   return (
     <div className="chat-msg ai">
-      <Sparkle size={11} className="ai-resp-sparkle" />
       <div className="ai-resp-content">
         {message.text && <p>{message.text}</p>}
 
