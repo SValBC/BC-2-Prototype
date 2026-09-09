@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BuildCrew.AI: Pre-construction</title>
-  <link rel="stylesheet" href="app.css?v=47" />
+  <link rel="stylesheet" href="app.css?v=48" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
@@ -25,15 +25,15 @@
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
   <!-- Data + components — ?v= is a cache-buster; bump when JSX changes and the browser stubbornly serves the old compile -->
-  <script src="data.js?v=47"></script>
-  <script type="text/babel" src="components.jsx?v=47"></script>
-  <script type="text/babel" src="screens-1.jsx?v=47"></script>
-  <script type="text/babel" src="screens-2.jsx?v=47"></script>
-  <script type="text/babel" src="screens-3.jsx?v=47"></script>
-  <script type="text/babel" src="screens-4.jsx?v=47"></script>
-  <script type="text/babel" src="screens-modals.jsx?v=47"></script>
-  <script type="text/babel" src="screens-tabs.jsx?v=47"></script>
-  <script type="text/babel" src="tweaks-panel.jsx?v=47"></script>
+  <script src="data.js?v=48"></script>
+  <script type="text/babel" src="components.jsx?v=48"></script>
+  <script type="text/babel" src="screens-1.jsx?v=48"></script>
+  <script type="text/babel" src="screens-2.jsx?v=48"></script>
+  <script type="text/babel" src="screens-3.jsx?v=48"></script>
+  <script type="text/babel" src="screens-4.jsx?v=48"></script>
+  <script type="text/babel" src="screens-modals.jsx?v=48"></script>
+  <script type="text/babel" src="screens-tabs.jsx?v=48"></script>
+  <script type="text/babel" src="tweaks-panel.jsx?v=48"></script>
 
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
@@ -414,7 +414,9 @@
 
       // ---- Tab operations ----
       const addTab = (tab) => {
-        // Dedupe by signature (kind + screen + ctx.projectId + ctx.tab) unless force=true
+        // Dedupe by signature (kind + screen + ctx.projectId + ctx.tab)
+        // unless force=true. If a matching tab already exists, activate
+        // it instead of opening a duplicate.
         if (!tab.force) {
           const sig = tab.kind + "|" + tab.screen + "|" + (tab.ctx?.projectId || "") + "|" + (tab.ctx?.tab || "") + "|" + (tab.ctx?.drawingId || "");
           const existing = tabs.find(tb => {
@@ -427,6 +429,19 @@
           }
         }
         const { force, ...clean } = tab;
+        // Single-tab-first: without force, navigation replaces the
+        // ACTIVE tab's content rather than appending a new one. Users
+        // create additional tabs explicitly via the "+" button in the
+        // tab bar or via "Open in new tab" context-menu actions
+        // (which set force: true).
+        if (!force) {
+          const activeId = activeTabId;
+          const activeExists = tabs.some(tb => tb.id === activeId);
+          if (activeExists) {
+            setTabs(prev => prev.map(tb => tb.id === activeId ? { ...tb, ...clean, id: activeId, ctx: clean.ctx || tb.ctx } : tb));
+            return activeId;
+          }
+        }
         const id = clean.id || ("t-" + Date.now().toString(36));
         const next = { ...clean, id };
         setTabs(prev => [...prev, next]);
@@ -850,7 +865,17 @@
         return out.slice(0, 4);
       }, [tabHistory, tabs, projects, activeTabId]);
 
-      const newTabFromButton = () => goToScreen("home");
+      // The "+" button in the tab bar always opens a fresh Home tab
+      // alongside the current one — bypasses addTab's single-tab
+      // replace behavior via force: true.
+      const newTabFromButton = () => addTab({
+        kind: "static",
+        screen: "home",
+        ctx: { section: "overview" },
+        label: "Home",
+        icon: "home",
+        force: true,
+      });
 
       return (
         <div className="app" data-density={t.density} data-no-list="true" data-ai-open={aiOpen} data-nav-collapsed={navCollapsed} data-fux-panels-hidden={fuxPanelsHidden}>

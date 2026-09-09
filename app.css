@@ -2075,6 +2075,30 @@ button { font-family: inherit; }
 }
 .tabbar-scroll::-webkit-scrollbar { height: 4px; }
 .tabbar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+
+/* "+" new-tab button — sits right after the last tab. Ghost square,
+   picks up orange on hover to match the rest of the taskbar chrome. */
+.tabbar-new {
+  align-self: flex-end;
+  width: 32px;
+  height: 32px;
+  margin: 0 0 4px 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(253, 253, 253, 0.75);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .12s ease, color .12s ease;
+}
+.tabbar-new:hover { background: rgba(253, 253, 253, 0.08); color: var(--v3-golden-gate); }
+.tabbar-new .mi { font-size: 18px; }
+[data-theme="light"] .tabbar-new { color: rgba(39, 38, 53, 0.65); }
+[data-theme="light"] .tabbar-new:hover { background: rgba(39, 38, 53, 0.06); color: var(--v3-golden-gate); }
 .tab {
   position: relative;
   display: inline-flex; align-items: center; gap: 8px;

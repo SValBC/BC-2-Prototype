@@ -58,6 +58,15 @@ function TabBar({ tabs, activeId, onActivate, onClose, onNewTab, onToggleNav, na
             )}
           </div>
         ))}
+        {onNewTab && (
+          <button
+            className="tabbar-new"
+            onClick={onNewTab}
+            aria-label="New tab"
+            title="New tab">
+            <Icon name="add" size={16} />
+          </button>
+        )}
       </div>
     </div>
   );
